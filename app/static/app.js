@@ -7,6 +7,11 @@ const resultsTitle = document.getElementById("results-title");
 const datasetPill = document.getElementById("dataset-pill");
 const limitWrapper = document.getElementById("limit-wrapper");
 const toast = document.getElementById("toast");
+const modal = document.getElementById("modal");
+const modalBackdrop = document.getElementById("modal-backdrop");
+const modalBody = document.getElementById("modal-body");
+const modalTitle = document.getElementById("modal-title");
+const modalClose = document.getElementById("modal-close");
 
 const modeRadios = Array.from(document.querySelectorAll('input[name="mode"]'));
 
@@ -19,6 +24,8 @@ document.addEventListener("DOMContentLoaded", () => {
   loadDatasets();
   setupModeToggle();
   form.addEventListener("submit", onSubmit);
+  modalClose.addEventListener("click", closeModal);
+  modalBackdrop.addEventListener("click", closeModal);
 });
 
 function setupModeToggle() {
@@ -152,16 +159,12 @@ function renderRecords(records, dataset, title) {
 
     const kv = document.createElement("div");
     kv.className = "kv";
+
     Object.entries(rec).forEach(([key, value]) => {
-      const label = document.createElement("div");
-      label.className = "label";
-      label.textContent = key;
-      const val = document.createElement("div");
-      val.className = "value";
-      val.textContent = formatValue(key, value);
-      kv.appendChild(label);
-      kv.appendChild(val);
+      kv.appendChild(renderKvLabel(key));
+      kv.appendChild(renderKvValue(key, value));
     });
+
     card.appendChild(kv);
 
     if (rec["URL proceso"] && rec["URL proceso"] !== "No disponible") {
@@ -182,7 +185,8 @@ function formatValue(key, value) {
   if (value === null || value === undefined) return "No disponible";
   if (typeof value === "string" && value.trim() === "") return "No disponible";
   const str = String(value);
-  if (key.toLowerCase().includes("valor")) {
+  const lower = key.toLowerCase();
+  if (lower.includes("valor") || lower.includes("presupuesto")) {
     const num = Number(str.replace(/[^0-9.-]/g, ""));
     if (!Number.isNaN(num)) {
       return new Intl.NumberFormat("es-CO", {
@@ -212,4 +216,82 @@ function notify(msg, type = "info") {
   toast.classList.remove("hidden");
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toast.classList.add("hidden"), 4000);
+}
+
+function renderKvLabel(text) {
+  const label = document.createElement("div");
+  label.className = "label";
+  label.textContent = text;
+  return label;
+}
+
+function renderKvValue(key, value) {
+  const val = document.createElement("div");
+  val.className = "value";
+  const lower = key.toLowerCase();
+  if (lower.includes("nit")) {
+    const nit = String(value || "").replace(/\D/g, "");
+    if (!nit) {
+      val.textContent = "No disponible";
+      return val;
+    }
+    const link = document.createElement("a");
+    link.href = `https://www.rues.org.co/consultas?nit=${nit}`;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.className = "link-btn";
+    link.textContent = value;
+    val.appendChild(link);
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = "Consultar proveedor";
+    btn.style.marginTop = "4px";
+    btn.style.padding = "8px 10px";
+    btn.style.fontSize = "13px";
+    btn.addEventListener("click", () => showProveedor(nit));
+    val.appendChild(btn);
+    return val;
+  }
+
+  val.textContent = formatValue(key, value);
+  return val;
+}
+
+async function showProveedor(nit) {
+  try {
+    setStatus(`Consultando proveedor ${nit}...`);
+    const res = await fetch(`/proveedor/${nit}`);
+    if (!res.ok) throw new Error(await extractError(res));
+    const data = await res.json();
+    openModal(`Proveedor / NIT ${nit}`, data);
+  } catch (e) {
+    notify(e.message || "No se pudo consultar el proveedor.", "error");
+  } finally {
+    setStatus("Listo.");
+  }
+}
+
+function openModal(title, obj) {
+  modalTitle.textContent = title;
+  modalBody.innerHTML = "";
+
+  const kv = document.createElement("div");
+  kv.className = "kv";
+  Object.entries(obj || {}).forEach(([k, v]) => {
+    kv.appendChild(renderKvLabel(k));
+    const val = document.createElement("div");
+    val.className = "value";
+    val.textContent = v ?? "No disponible";
+    kv.appendChild(val);
+  });
+  modalBody.appendChild(kv);
+
+  modal.classList.remove("hidden");
+  modalBackdrop.classList.remove("hidden");
+}
+
+function closeModal() {
+  modal.classList.add("hidden");
+  modalBackdrop.classList.add("hidden");
 }

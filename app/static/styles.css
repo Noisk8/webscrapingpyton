@@ -178,6 +178,57 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow
 .toast.error { border-color: #ef4444; color: #fecdd3; }
 .toast.success { border-color: #22c55e; color: #bbf7d0; }
 
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 20;
+}
+.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 21;
+}
+.modal-card {
+  background: #0f1a2e;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  width: min(560px, 90vw);
+  max-height: 80vh;
+  overflow: auto;
+  box-shadow: var(--shadow);
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.modal-header h3 { margin: 0; }
+.close-btn {
+  background: #1e293b;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.close-btn:hover { background: #24324a; }
+.modal-body {
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.4;
+}
+.modal-body .kv { grid-template-columns: 1fr 1fr; }
+
 @media (max-width: 720px) {
   .results-grid { grid-template-columns: 1fr; }
   .hero { flex-direction: column; }

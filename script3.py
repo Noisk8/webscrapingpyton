@@ -718,20 +718,23 @@ class SecopApp(tk.Tk):
         ttk.Label(row1, text="Entidad contratante:", style="FieldLabel.TLabel").grid(
             row=0, column=0, sticky="w"
         )
-        ttk.Label(
+        self._entity_or_provider_link(
             row1,
-            text=record.get("Entidad contratante", "No disponible"),
-            style="FieldValue.TLabel",
-        ).grid(row=0, column=1, sticky="w", padx=(4, 0))
+            record.get("Entidad contratante"),
+            record.get("NIT entidad"),
+            0,
+            is_entity=True,
+        )
 
         ttk.Label(row1, text="Proveedor adjudicado:", style="FieldLabel.TLabel").grid(
             row=1, column=0, sticky="w", pady=(2, 0)
         )
-        ttk.Label(
+        self._entity_or_provider_link(
             row1,
-            text=record.get("Proveedor adjudicado", "No disponible"),
-            style="FieldValue.TLabel",
-        ).grid(row=1, column=1, sticky="w", padx=(4, 0), pady=(2, 0))
+            record.get("Proveedor adjudicado"),
+            record.get("NIT proveedor"),
+            1,
+        )
 
         # Objeto / descripción
         row2 = ttk.Frame(card, style="CardInner.TFrame")
@@ -823,6 +826,7 @@ class SecopApp(tk.Tk):
             "NIT entidad:",
             record.get("NIT entidad", "No disponible"),
             0,
+            is_entity=True,
         )
         self._nit_link(
             nit_frame,
@@ -861,7 +865,43 @@ class SecopApp(tk.Tk):
 
     # ---------- NIT / proveedores ----------
 
-    def _nit_link(self, parent, label_text: str, nit_value: str, row: int):
+    def _entity_or_provider_link(
+        self,
+        parent,
+        display_text: str | None,
+        nit_value: str | None,
+        row: int,
+        is_entity: bool = False,
+    ):
+        """
+        Muestra el nombre de entidad/proveedor; si hay NIT disponible, lo renderiza
+        como enlace que abre la ficha del proveedor SECOP II.
+        """
+        name = display_text if display_text and display_text != "No disponible" else "No disponible"
+        nit_clean = re.sub(r"\D", "", str(nit_value or ""))
+
+        if nit_clean and name != "No disponible":
+            link = tk.Label(
+                parent,
+                text=name,
+                fg=ACCENT_COLOR,
+                cursor="hand2",
+                font=("Segoe UI", 9, "underline"),
+                bg=CARD_BG,
+            )
+            link.grid(row=row, column=1, sticky="w", padx=(4, 0))
+            link.bind(
+                "<Button-1>",
+                lambda e, n=nit_clean: self._open_proveedor_dialog(n, is_entity),
+            )
+        else:
+            ttk.Label(
+                parent,
+                text=name,
+                style="FieldValue.TLabel",
+            ).grid(row=row, column=1, sticky="w", padx=(4, 0))
+
+    def _nit_link(self, parent, label_text: str, nit_value: str, row: int, is_entity: bool = False):
         ttk.Label(parent, text=label_text, style="FieldLabel.TLabel").grid(
             row=row, column=0, sticky="w"
         )
@@ -882,20 +922,27 @@ class SecopApp(tk.Tk):
             link.grid(row=row, column=1, sticky="w", padx=(4, 0))
             link.bind(
                 "<Button-1>",
-                lambda e, n=nit_clean: self._open_proveedor_dialog(n),
+                lambda e, n=nit_clean: self._open_proveedor_dialog(n, is_entity),
             )
         else:
             ttk.Label(parent, text="No disponible", style="FieldValue.TLabel").grid(
                 row=row, column=1, sticky="w", padx=(4, 0)
             )
 
-    def _open_proveedor_dialog(self, nit: str):
-        """Abre una ventana con los datos del proveedor desde Datos Abiertos."""
+    def _open_proveedor_dialog(self, nit: str, is_entity: bool = False):
+        """
+        Abre una ventana con datos del NIT desde Datos Abiertos.
+        Nota: el dataset qmzu-gj57 contiene proveedores, por lo que muchas entidades públicas
+        no aparecerán.
+        """
         row = fetch_proveedor_por_nit(nit)
         if not row:
+            who = "la entidad" if is_entity else "el proveedor"
             messagebox.showinfo(
-                "Proveedor no encontrado",
-                f"No se encontró información de proveedor en Datos Abiertos para el NIT {nit}.",
+                "Información no disponible",
+                f"No se encontró información en Datos Abiertos para {who} con NIT {nit}.\n"
+                "El dataset qmzu-gj57 solo publica proveedores registrados en SECOP II, "
+                "por lo que muchas entidades públicas no tienen ficha allí.",
             )
             return
 

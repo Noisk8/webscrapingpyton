@@ -4,17 +4,19 @@ Proyecto con dos formas de uso:
 - **API web (FastAPI)** lista para desplegar en Fly.io (`app/main.py`, `Dockerfile`, `fly.toml`).
 - **App de escritorio Tkinter** (archivo original `analisis.py`, no se usa en Fly pero sigue en el repo).
 
-## Ejecutar la API localmente
+## Ejecutar la API + UI web localmente
 1) (Opcional) crea un entorno virtual: `python -m venv .venv` y actívalo.  
 2) Instala dependencias: `pip install -r requirements.txt`  
-3) Arranca la API: `uvicorn app.main:app --reload --port 8080`  
-4) Prueba: `curl http://localhost:8080/health`
+3) Arranca la API + UI: `uvicorn app.main:app --reload --port 8080`  
+4) Abre `http://localhost:8080` para usar la interfaz web.  
+5) Prueba salud: `curl http://localhost:8080/health`
 
 Endpoints principales:
 - `POST /lookup` body `{"url": "...", "dataset": "SECOP II - Procesos (p6dx-8zbt)"}`  
 - `GET /search?term=palabra&dataset=SECOP II - Procesos (p6dx-8zbt)`  
 - `GET /proveedor/{nit}`  
 - `GET /` muestra info básica.
+- UI estática servida desde `/` (HTML/JS en `app/static`), usando la API interna.
 
 ## Despliegue en Fly.io
 Hay dos caminos: usando la UI de Fly (como en tu captura) o la CLI. El archivo `fly.toml` ya está incluido y usa el puerto 8080.

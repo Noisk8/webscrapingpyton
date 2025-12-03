@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analizador SECOP – Web</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Datos Abiertos Colombia</p>
+        <h1>Analizador SECOP II</h1>
+        <p class="lede">Consulta procesos y contratos por URL/noticeUID o por palabra clave. Alimentado por los datasets abiertos de SECOP II.</p>
+        <div class="links">
+          <a href="/docs" target="_blank">Ver API Docs</a>
+          <a href="https://www.datos.gov.co/Contracting-Processes/SECOP-II-Procesos/p6dx-8zbt" target="_blank">Dataset p6dx-8zbt</a>
+          <a href="https://www.datos.gov.co/Government/SECOP-II-Contratos-electr-nicos/jbjy-vk9h" target="_blank">Dataset jbjy-vk9h</a>
+        </div>
+      </div>
+      <div class="badge">API + UI</div>
+    </header>
+
+    <main>
+      <section class="card">
+        <form id="search-form">
+          <div class="field">
+            <label for="query">URL SECOP II o palabra clave</label>
+            <input id="query" name="query" type="text" placeholder="https://community.secop.gov.co/..." required>
+          </div>
+
+          <div class="field grid">
+            <div>
+              <label>Modo</label>
+              <div class="inline">
+                <label><input type="radio" name="mode" value="url" checked> URL / noticeUID</label>
+                <label><input type="radio" name="mode" value="keyword"> Palabra clave</label>
+              </div>
+            </div>
+            <div>
+              <label for="dataset">Dataset</label>
+              <select id="dataset" name="dataset"></select>
+            </div>
+            <div id="limit-wrapper" class="hidden">
+              <label for="limit">Límite</label>
+              <input id="limit" name="limit" type="number" value="20" min="1" max="50">
+            </div>
+          </div>
+
+          <div class="actions">
+            <div class="status" id="status">Listo.</div>
+            <button type="submit">Buscar</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card results">
+        <div class="results-header">
+          <div>
+            <p class="eyebrow">Resultados</p>
+            <h2 id="results-title">Aún no hay resultados.</h2>
+          </div>
+          <div class="pill" id="dataset-pill">—</div>
+        </div>
+        <div id="results-grid" class="results-grid">
+          <!-- Cards render here -->
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

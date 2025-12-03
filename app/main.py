@@ -1,4 +1,5 @@
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 from urllib.parse import parse_qs, urlparse
 import re
@@ -6,6 +7,8 @@ import re
 import requests
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 # --- Configuración de datasets ---
 
@@ -340,6 +343,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
 
 @app.get("/health")
 def health() -> dict:
@@ -387,8 +393,34 @@ def proveedor(nit: str) -> dict:
 
 
 @app.get("/")
-def root() -> dict:
+def root() -> FileResponse:
+    """Sirve la UI web estática."""
+    index_path = STATIC_DIR / "index.html"
+    if not index_path.exists():
+        raise HTTPException(status_code=500, detail="UI no encontrada.")
+    return FileResponse(index_path)
+
+
+@app.get("/api")
+def api_root() -> dict:
     return {
         "message": "API Analizador SECOP (Datos Abiertos)",
-        "endpoints": ["/lookup", "/search", "/proveedor/{nit}", "/health"],
+        "endpoints": [
+            "/lookup",
+            "/search",
+            "/proveedor/{nit}",
+            "/health",
+            "/meta/datasets",
+        ],
+    }
+
+
+@app.get("/meta/datasets")
+def meta_datasets() -> dict:
+    return {
+        "default": DEFAULT_DATASET,
+        "datasets": [
+            {"name": name, "type": cfg["type"], "currency_fields": list(cfg["currency_fields"])}
+            for name, cfg in DATASETS.items()
+        ],
     }

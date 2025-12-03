@@ -1,0 +1,12 @@
+.git
+__pycache__/
+*.pyc
+.venv
+.env
+backups/
+dist/
+build/
+*.log
+*.db
+*.sqlite
+*.tar.gz

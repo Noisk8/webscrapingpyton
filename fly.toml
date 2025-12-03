@@ -1,4 +1,4 @@
-app = "webscrapingpyton"
+app = "webscrapingpyton-api"
 
 [build]
   dockerfile = "Dockerfile"
